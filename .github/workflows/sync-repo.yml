@@ -1,0 +1,41 @@
+name: "Rebase Upstream"
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  sync_latest_from_upstream:
+    runs-on: ubuntu-latest
+    name: Sync latest commits from upstream repo
+
+    steps:
+      - name: Checkout addon
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Prevent upstream from configuring repo
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git remote add upstream https://github.com/Nnoggie/MythicDungeonTools.git
+          git fetch upstream
+          git switch -c upstream-master upstream/master
+          git rm -r .github
+          git commit -m "Remove .github directory"
+          [ ! -d ".github" ] && git switch master
+        shell: bash
+
+      - name: Sync upstream changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git rebase --rebase-merges upstream-master
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          force: true
+          tags: true
