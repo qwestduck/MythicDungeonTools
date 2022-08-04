@@ -1,0 +1,23 @@
+name: Build
+
+on:
+  push:
+    tags:
+      - "*"
+      - "!**-alpha**"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout addon
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Package
+        uses: BigWigsMods/packager@master
+        env:
+          GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
